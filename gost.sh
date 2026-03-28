@@ -6,6 +6,7 @@ shell_version="1.1.1"
 ct_new_ver="2.11.2" # 2.x 不再跟随官方更新
 gost_conf_path="/etc/gost/config.json"
 raw_conf_path="/etc/gost/rawconf"
+
 function checknew() {
   checknew=$(gost -V 2>&1 | awk '{print $2}')
   # check_new_ver
@@ -22,6 +23,7 @@ function checknew() {
     exit 0
   fi
 }
+
 function check_sys() {
   if [[ -f /etc/redhat-release ]]; then
     release="centos"
@@ -46,6 +48,7 @@ function check_sys() {
     bit="amd64"
   fi
 }
+
 function Installation_dependency() {
   gzip_ver=$(gzip -V)
   if [[ -z ${gzip_ver} ]]; then
@@ -58,9 +61,11 @@ function Installation_dependency() {
     fi
   fi
 }
+
 function check_root() {
   [[ $EUID != 0 ]] && echo -e "${Error} 当前非ROOT账号(或没有ROOT权限)，无法继续操作，请更换ROOT账号或使用 ${Green_background_prefix}sudo su${Font_color_suffix} 命令获取临时ROOT权限（执行后可能会提示输入当前账号的密码）。" && exit 1
 }
+
 function check_new_ver() {
   # deprecated
   ct_new_ver=$(wget --no-check-certificate -qO- -t2 -T3 https://api.github.com/repos/ginuerzh/gost/releases/latest | grep "tag_name" | head -n 1 | awk -F ":" '{print $2}' | sed 's/\"//g;s/,//g;s/ //g;s/v//g')
@@ -71,12 +76,14 @@ function check_new_ver() {
     echo -e "${Info} gost 目前最新版本为 ${ct_new_ver}"
   fi
 }
+
 function check_file() {
   if test ! -d "/usr/lib/systemd/system/"; then
     mkdir /usr/lib/systemd/system
     chmod -R 777 /usr/lib/systemd/system
   fi
 }
+
 function check_nor_file() {
   rm -rf "$(pwd)"/gost
   rm -rf "$(pwd)"/gost.service
@@ -85,6 +92,7 @@ function check_nor_file() {
   rm -rf /usr/lib/systemd/system/gost.service
   rm -rf /usr/bin/gost
 }
+
 function Install_ct() {
   check_root
   check_nor_file
@@ -130,6 +138,7 @@ function Install_ct() {
     rm -rf "$(pwd)"/gost.sh
   fi
 }
+
 function Uninstall_ct() {
   rm -rf /usr/bin/gost
   rm -rf /usr/lib/systemd/system/gost.service
@@ -137,14 +146,17 @@ function Uninstall_ct() {
   rm -rf "$(pwd)"/gost.sh
   echo "gost已经成功删除"
 }
+
 function Start_ct() {
   systemctl start gost
   echo "已启动"
 }
+
 function Stop_ct() {
   systemctl stop gost
   echo "已停止"
 }
+
 function Restart_ct() {
   rm -rf /etc/gost/config.json
   confstart
@@ -153,6 +165,7 @@ function Restart_ct() {
   systemctl restart gost
   echo "已重读配置并重启"
 }
+
 function read_protocol() {
   echo -e "请问您要设置哪种功能: "
   echo -e "-----------------------------------"
@@ -195,6 +208,7 @@ function read_protocol() {
     exit
   fi
 }
+
 function read_s_port() {
   if [ "$flag_a" == "ss" ]; then
     echo -e "-----------------------------------"
@@ -211,6 +225,7 @@ function read_s_port() {
     read -p "请输入: " flag_b
   fi
 }
+
 function read_d_ip() {
   if [ "$flag_a" == "ss" ]; then
     echo -e "------------------------------------------------------------------"
@@ -303,6 +318,7 @@ function read_d_ip() {
     read -p "请输入: " flag_c
   fi
 }
+
 function read_d_port() {
   if [ "$flag_a" == "ss" ]; then
     echo -e "------------------------------------------------------------------"
@@ -348,9 +364,11 @@ function read_d_port() {
     fi
   fi
 }
+
 function writerawconf() {
   echo $flag_a"/""$flag_b""#""$flag_c""#""$flag_d" >>$raw_conf_path
 }
+
 function rawconf() {
   read_protocol
   read_s_port
@@ -358,6 +376,7 @@ function rawconf() {
   read_d_port
   writerawconf
 }
+
 function eachconf_retrieve() {
   d_server=${trans_conf#*#}
   d_port=${d_server#*#}
@@ -366,21 +385,25 @@ function eachconf_retrieve() {
   s_port=${flag_s_port#*/}
   is_encrypt=${flag_s_port%/*}
 }
+
 function confstart() {
   echo "{
     \"Debug\": true,
     \"Retries\": 0,
     \"ServeNodes\": [" >>$gost_conf_path
 }
+
 function multiconfstart() {
   echo "        {
             \"Retries\": 0,
             \"ServeNodes\": [" >>$gost_conf_path
 }
+
 function conflast() {
   echo "    ]
 }" >>$gost_conf_path
 }
+
 function multiconflast() {
   if [ $i -eq $count_line ]; then
     echo "            ]
@@ -390,6 +413,7 @@ function multiconflast() {
         }," >>$gost_conf_path
   fi
 }
+
 function encrypt() {
   echo -e "请问您要设置的转发传输类型: "
   echo -e "-----------------------------------"
@@ -415,6 +439,7 @@ function encrypt() {
     exit
   fi
 }
+
 function enpeer() {
   echo -e "请问您要设置的均衡负载传输类型: "
   echo -e "-----------------------------------"
@@ -436,12 +461,12 @@ function enpeer() {
     flag_a="peerws"
   elif [ "$numpeer" == "4" ]; then
     flag_a="peerwss"
-
   else
     echo "type error, please try again"
     exit
   fi
 }
+
 function cdn() {
   echo -e "请问您要设置的CDN传输类型: "
   echo -e "-----------------------------------"
@@ -464,6 +489,7 @@ function cdn() {
     exit
   fi
 }
+
 function cert() {
   echo -e "-----------------------------------"
   echo -e "[1] ACME一键申请证书"
@@ -527,7 +553,6 @@ function cert() {
         exit 1
       fi
     fi
-
   elif [ "$numcert" == "2" ]; then
     if [ ! -d "$HOME/gost_cert" ]; then
       mkdir $HOME/gost_cert
@@ -542,6 +567,7 @@ function cert() {
     exit
   fi
 }
+
 function decrypt() {
   echo -e "请问您要设置的解密传输类型: "
   echo -e "-----------------------------------"
@@ -563,6 +589,7 @@ function decrypt() {
     exit
   fi
 }
+
 function proxy() {
   echo -e "------------------------------------------------------------------"
   echo -e "请问您要设置的代理类型: "
@@ -583,6 +610,7 @@ function proxy() {
     exit
   fi
 }
+
 function method() {
   if [ $i -eq 1 ]; then
     if [ "$is_encrypt" == "nonencrypt" ]; then
@@ -778,11 +806,16 @@ function writeconf() {
     fi
   done
 }
+
 function show_all_conf() {
   echo -e "                      GOST 配置                        "
   echo -e "--------------------------------------------------------"
   echo -e "序号|方法\t    |本地端口\t|目的地地址:目的地端口"
   echo -e "--------------------------------------------------------"
+
+  if [ ! -f "$raw_conf_path" ]; then
+    return
+  fi
 
   count_line=$(awk 'END{print NR}' $raw_conf_path)
   for ((i = 1; i <= $count_line; i++)); do
@@ -829,6 +862,183 @@ function show_all_conf() {
 
     echo -e " $i  |$str  |$s_port\t|$d_ip:$d_port"
     echo -e "--------------------------------------------------------"
+  done
+}
+
+function is_valid_ip() {
+  local ip="$1"
+  local IFS=.
+  local -a octets
+  read -r -a octets <<< "$ip"
+  [ ${#octets[@]} -ne 4 ] && return 1
+  for octet in "${octets[@]}"; do
+    [[ "$octet" =~ ^[0-9]+$ ]] || return 1
+    ((octet >= 0 && octet <= 255)) || return 1
+  done
+  return 0
+}
+
+function ip_to_int() {
+  local ip="$1"
+  local IFS=.
+  local -a octets
+  read -r -a octets <<< "$ip"
+  echo $(( (${octets[0]} << 24) + (${octets[1]} << 16) + (${octets[2]} << 8) + ${octets[3]} ))
+}
+
+function int_to_ip() {
+  local num="$1"
+  echo "$(( (num >> 24) & 255 )).$(( (num >> 16) & 255 )).$(( (num >> 8) & 255 )).$(( num & 255 ))"
+}
+
+function expand_ip_input() {
+  local input="$1"
+  IP_LIST=()
+
+  if [[ "$input" =~ ^([0-9]+\.[0-9]+\.[0-9]+\.[0-9]+)$ ]]; then
+    local ip="${BASH_REMATCH[1]}"
+    if ! is_valid_ip "$ip"; then
+      echo "IP格式错误: $ip"
+      return 1
+    fi
+    IP_LIST+=("$ip")
+    return 0
+  fi
+
+  if [[ "$input" =~ ^([0-9]+\.[0-9]+\.[0-9]+)\.([0-9]+)-([0-9]+)$ ]]; then
+    local prefix="${BASH_REMATCH[1]}"
+    local start="${BASH_REMATCH[2]}"
+    local end="${BASH_REMATCH[3]}"
+
+    [[ "$start" =~ ^[0-9]+$ && "$end" =~ ^[0-9]+$ ]] || {
+      echo "尾号范围格式错误"
+      return 1
+    }
+
+    ((start >= 0 && start <= 255 && end >= 0 && end <= 255 && start <= end)) || {
+      echo "尾号范围无效，应在 0-255 且起始<=结束"
+      return 1
+    }
+
+    for ((j = start; j <= end; j++)); do
+      local ip="${prefix}.${j}"
+      if ! is_valid_ip "$ip"; then
+        echo "IP格式错误: $ip"
+        return 1
+      fi
+      IP_LIST+=("$ip")
+    done
+    return 0
+  fi
+
+  if [[ "$input" =~ ^([0-9]+\.[0-9]+\.[0-9]+\.[0-9]+)-([0-9]+\.[0-9]+\.[0-9]+\.[0-9]+)$ ]]; then
+    local start_ip="${BASH_REMATCH[1]}"
+    local end_ip="${BASH_REMATCH[2]}"
+
+    if ! is_valid_ip "$start_ip" || ! is_valid_ip "$end_ip"; then
+      echo "完整范围IP格式错误"
+      return 1
+    fi
+
+    local start_num
+    local end_num
+    start_num=$(ip_to_int "$start_ip")
+    end_num=$(ip_to_int "$end_ip")
+
+    ((start_num <= end_num)) || {
+      echo "完整范围无效：起始IP不能大于结束IP"
+      return 1
+    }
+
+    for ((j = start_num; j <= end_num; j++)); do
+      IP_LIST+=("$(int_to_ip "$j")")
+    done
+    return 0
+  fi
+
+  echo "请输入正确的IP或IP段，支持以下格式："
+  echo "  1) 单个IP: 192.168.1.1"
+  echo "  2) 尾号范围: 192.168.1.1-27"
+  echo "  3) 完整范围: 192.168.1.1-192.168.1.27"
+  return 1
+}
+
+function batch_rawconf() {
+  mkdir -p /etc/gost
+  touch "$raw_conf_path"
+
+  read_protocol
+
+  if [ "$flag_a" == "ss" ] || [ "$flag_a" == "socks" ] || [ "$flag_a" == "http" ] || [[ "$flag_a" == "peer"* ]] || [[ "$flag_a" == "cdn"* ]]; then
+    echo "当前批量模式仅支持："
+    echo "  1) tcp+udp不加密转发"
+    echo "  2) 加密隧道流量转发"
+    echo "  3) 解密由gost传输而来的流量并转发"
+    return 1
+  fi
+
+  echo -e "------------------------------------------------------------------"
+  echo -e "请输入IP或IP段，支持以下格式："
+  echo -e "  1) 单个IP: 192.168.1.1"
+  echo -e "  2) 尾号范围: 192.168.1.1-27"
+  echo -e "  3) 完整范围: 192.168.1.1-192.168.1.27"
+  if [[ ${is_cert} == [Yy] ]]; then
+    echo -e "注意: 落地机开启自定义tls证书，务必填写${Red_font_prefix}域名${Font_color_suffix}"
+  fi
+  read -p "请输入目标IP或IP段: " ip_input
+
+  if ! expand_ip_input "$ip_input"; then
+    return 1
+  fi
+
+  echo -e "------------------------------------------------------------------"
+  echo -e "请问你要将本机哪个端口接收到的流量进行转发?"
+  read -p "请输入开始端口: " start_s_port
+
+  echo -e "------------------------------------------------------------------"
+  echo -e "目标端口模式:"
+  echo -e "[1] 固定端口"
+  echo -e "[2] 递增端口"
+  read -p "请选择: " d_port_mode
+
+  if [ "$d_port_mode" == "1" ]; then
+    echo -e "------------------------------------------------------------------"
+    read -p "请输入目标固定端口: " fixed_d_port
+  elif [ "$d_port_mode" == "2" ]; then
+    echo -e "------------------------------------------------------------------"
+    read -p "请输入目标开始端口: " start_d_port
+  else
+    echo "type error, please try again"
+    return 1
+  fi
+
+  current_s_port=$start_s_port
+  current_d_port=$start_d_port
+
+  for ip in "${IP_LIST[@]}"; do
+    flag_b=$current_s_port
+    flag_c=$ip
+
+    if [ "$d_port_mode" == "1" ]; then
+      flag_d=$fixed_d_port
+    else
+      flag_d=$current_d_port
+    fi
+
+    if [[ ${is_cert} == [Yy] ]]; then
+      flag_d="$flag_d?secure=true"
+    fi
+
+    if grep -q "/${flag_b}#" "$raw_conf_path" 2>/dev/null; then
+      echo "本地端口 ${flag_b} 已存在，跳过 -> ${flag_c}:${flag_d}"
+    else
+      writerawconf
+    fi
+
+    current_s_port=$((current_s_port + 1))
+    if [ "$d_port_mode" == "2" ]; then
+      current_d_port=$((current_d_port + 1))
+    fi
   done
 }
 
@@ -884,7 +1094,6 @@ update_sh() {
         exit 0
         ;;
       *) ;;
-
       esac
     else
       echo -e "                 ${Green_font_prefix}当前版本为最新版本！${Font_color_suffix}"
@@ -917,8 +1126,10 @@ echo && echo -e "                 gost 一键安装配置脚本"${Red_font_prefi
 ————————————
  ${Green_font_prefix}10.${Font_color_suffix} gost定时重启配置
  ${Green_font_prefix}11.${Font_color_suffix} 自定义TLS证书配置
+ ${Green_font_prefix}12.${Font_color_suffix} 批量新增gost转发配置
 ————————————" && echo
-read -e -p " 请输入数字 [1-9]:" num
+
+read -e -p " 请输入数字 [1-12]:" num
 case "$num" in
 1)
   Install_ct
@@ -973,7 +1184,19 @@ case "$num" in
 11)
   cert
   ;;
+12)
+  cp -f "$raw_conf_path" "${raw_conf_path}.bak.$(date +%F_%H%M%S)" 2>/dev/null
+  batch_rawconf
+  rm -rf /etc/gost/config.json
+  confstart
+  writeconf
+  conflast
+  systemctl restart gost
+  echo -e "配置已生效，当前配置如下"
+  echo -e "--------------------------------------------------------"
+  show_all_conf
+  ;;
 *)
-  echo "请输入正确数字 [1-9]"
+  echo "请输入正确数字 [1-12]"
   ;;
 esac
